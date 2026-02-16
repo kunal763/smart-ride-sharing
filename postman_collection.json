@@ -1,0 +1,741 @@
+{
+  "info": {
+    "name": "Airport Ride Pooling API",
+    "description": "Complete API collection for testing the ride pooling system",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "123e4567-e89b-12d3-a456-426614174000",
+      "type": "string"
+    },
+    {
+      "key": "requestId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "rideId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cabId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        },
+        "description": "Check if the API is running"
+      }
+    },
+    {
+      "name": "Rides",
+      "item": [
+        {
+          "name": "Create Ride Request - JFK to Times Square",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('requestId', response.data.id);",
+                  "    pm.test('Request created successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "        pm.expect(response.data.status).to.equal('PENDING');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"pickup\": {\n    \"latitude\": 40.6413,\n    \"longitude\": -73.7781,\n    \"address\": \"JFK Airport Terminal 4\"\n  },\n  \"dropoff\": {\n    \"latitude\": 40.7580,\n    \"longitude\": -73.9855,\n    \"address\": \"Times Square, Manhattan\"\n  },\n  \"passengers\": 2,\n  \"luggage\": [1, 2],\n  \"maxDetourMinutes\": 15\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/rides/request",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rides", "request"]
+            },
+            "description": "Create a ride request from JFK Airport to Times Square"
+          }
+        },
+        {
+          "name": "Create Ride Request - LaGuardia to Empire State",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.test('Request created successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"pickup\": {\n    \"latitude\": 40.7769,\n    \"longitude\": -73.8740,\n    \"address\": \"LaGuardia Airport\"\n  },\n  \"dropoff\": {\n    \"latitude\": 40.7484,\n    \"longitude\": -73.9857,\n    \"address\": \"Empire State Building\"\n  },\n  \"passengers\": 1,\n  \"luggage\": [1],\n  \"maxDetourMinutes\": 20\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/rides/request",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rides", "request"]
+            },
+            "description": "Create a ride request from LaGuardia to Empire State Building"
+          }
+        },
+        {
+          "name": "Find Matches",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.test('Matches retrieved successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "        pm.expect(response.data).to.be.an('array');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rides/matches/{{requestId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rides", "matches", "{{requestId}}"]
+            },
+            "description": "Find available matches for a ride request"
+          }
+        },
+        {
+          "name": "Confirm Booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('rideId', response.data.rideId);",
+                  "    pm.test('Booking confirmed successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "        pm.expect(response.data.rideId).to.exist;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requestId\": \"{{requestId}}\",\n  \"rideData\": {\n    \"passengers\": [\n      {\n        \"requestId\": \"{{requestId}}\",\n        \"userId\": \"{{userId}}\",\n        \"pickup\": {\n          \"latitude\": 40.6413,\n          \"longitude\": -73.7781\n        },\n        \"dropoff\": {\n          \"latitude\": 40.7580,\n          \"longitude\": -73.9855\n        },\n        \"passengers\": 2,\n        \"luggage\": [1, 2],\n        \"pickupOrder\": 0,\n        \"dropoffOrder\": 1,\n        \"fare\": 35.00,\n        \"detourMinutes\": 0\n      }\n    ],\n    \"route\": [\n      {\n        \"latitude\": 40.6413,\n        \"longitude\": -73.7781\n      },\n      {\n        \"latitude\": 40.7580,\n        \"longitude\": -73.9855\n      }\n    ],\n    \"totalDistance\": 25.5,\n    \"estimatedDuration\": 45,\n    \"basePrice\": 35.00,\n    \"surgeFactor\": 1.5\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/rides/book",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rides", "book"]
+            },
+            "description": "Confirm a ride booking"
+          }
+        },
+        {
+          "name": "Get Request Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.test('Status retrieved successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "        pm.expect(response.data.status).to.exist;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rides/{{requestId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rides", "{{requestId}}", "status"]
+            },
+            "description": "Get the current status of a ride request"
+          }
+        },
+        {
+          "name": "Start Ride",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.test('Ride started successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rides/{{rideId}}/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rides", "{{rideId}}", "start"]
+            },
+            "description": "Start a confirmed ride (changes status to IN_PROGRESS)"
+          }
+        },
+        {
+          "name": "Complete Ride",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.test('Ride completed successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rides/{{rideId}}/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rides", "{{rideId}}", "complete"]
+            },
+            "description": "Manually complete a ride and free up the driver"
+          }
+        },
+        {
+          "name": "Cancel Ride",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.test('Ride cancelled successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rides/{{rideId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rides", "{{rideId}}"]
+            },
+            "description": "Cancel an existing ride"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Create User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('userId', response.data.id);",
+                  "    pm.test('User created successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "        pm.expect(response.data.email).to.exist;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"phone\": \"+1234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Create a new user"
+          }
+        },
+        {
+          "name": "Get All Users",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.test('Users retrieved successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "        pm.expect(response.data).to.be.an('array');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users?limit=50&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Get list of users with pagination"
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.test('User retrieved successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "        pm.expect(response.data.id).to.exist;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userId}}"]
+            },
+            "description": "Get a specific user by ID"
+          }
+        },
+        {
+          "name": "Update User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.test('User updated successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe Updated\",\n  \"phone\": \"+1987654321\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userId}}"]
+            },
+            "description": "Update user information"
+          }
+        },
+        {
+          "name": "Delete User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.test('User deleted successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userId}}"]
+            },
+            "description": "Delete a user"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cabs",
+      "item": [
+        {
+          "name": "Create Cab",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('cabId', response.data.id);",
+                  "    pm.test('Cab created successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "        pm.expect(response.data.license_plate).to.exist;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"licensePlate\": \"ABC-1234\",\n  \"driverName\": \"Mike Johnson\",\n  \"driverPhone\": \"+1234567890\",\n  \"currentLat\": 40.7580,\n  \"currentLng\": -73.9855,\n  \"maxPassengers\": 4,\n  \"maxLuggage\": 6\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cabs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cabs"]
+            },
+            "description": "Create a new cab"
+          }
+        },
+        {
+          "name": "Get All Cabs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.test('Cabs retrieved successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "        pm.expect(response.data).to.be.an('array');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cabs?limit=50&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cabs"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Get list of cabs with pagination"
+          }
+        },
+        {
+          "name": "Get Available Cabs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.test('Available cabs retrieved successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "        pm.expect(response.data).to.be.an('array');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cabs?available=true&limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cabs"],
+              "query": [
+                {
+                  "key": "available",
+                  "value": "true"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": "Get only available cabs"
+          }
+        },
+        {
+          "name": "Get Cab by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.test('Cab retrieved successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "        pm.expect(response.data.id).to.exist;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cabs/{{cabId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cabs", "{{cabId}}"]
+            },
+            "description": "Get a specific cab by ID"
+          }
+        },
+        {
+          "name": "Update Cab",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.test('Cab updated successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"driverName\": \"Mike Johnson Updated\",\n  \"driverPhone\": \"+1987654321\",\n  \"isAvailable\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cabs/{{cabId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cabs", "{{cabId}}"]
+            },
+            "description": "Update cab information"
+          }
+        },
+        {
+          "name": "Update Cab Location",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.test('Cab location updated successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 40.7484,\n  \"longitude\": -73.9857\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cabs/{{cabId}}/location",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cabs", "{{cabId}}", "location"]
+            },
+            "description": "Update cab's current location"
+          }
+        },
+        {
+          "name": "Delete Cab",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.test('Cab deleted successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cabs/{{cabId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cabs", "{{cabId}}"]
+            },
+            "description": "Delete a cab"
+          }
+        }
+      ]
+    }
+  ]
+}
